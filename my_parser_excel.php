@@ -192,6 +192,7 @@ if ($_FILES['file']['tmp_name'] && $_POST ) {
 
     foreach ($result as $row){
         $next = $start + $i;
+        if ($row['id'] == NULL) continue;
         $active_sheet->setCellValueByColumnAndRow(0, $next, $row['id']);
         $active_sheet->setCellValueByColumnAndRow(1, $next, $row['name']);
         $active_sheet->setCellValueByColumnAndRow(2, $next, $row['price']);
