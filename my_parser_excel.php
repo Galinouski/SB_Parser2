@@ -141,11 +141,13 @@ if ($_FILES['file']['tmp_name'] && $_POST ) {
             if (isset($id_finish) && isset($id_start))
                 $sql .= " AND id BETWEEN '$id_start' AND '$id_finish' ";
             if (isset($start_price))
-                $sql .= " AND price > '$start_price' ";
+                $sql .= " AND price > $start_price ";
             if (isset($high_price))
-                $sql .= " AND price <= '$high_price' ";
+                $sql .= " AND price <= $high_price ";
             if (isset($limit))
                 $sql .= " LIMIT $limit";
+
+    //echo $sql; die;
 
     $res = mysqli_query($connection, $sql);
     if(!$res){
