@@ -35,29 +35,20 @@
         <br>В наименовании товара присутствует текст: <input type="text" name="name_like" /><br>
         <br>Диапозон по атриклю от: <input type="text" name="id_start" /> до: <input type="text" name="id_finish" /><br>
 
-        <br>Атрикль начинается с: <input type="text" name="id_n_start" /> оканчивается: <input type="text" name="id_n_finish" /><br>
+        <br>или начинается с: <input type="text" name="id_n_start" /> и оканчивается на: <input type="text" name="id_n_finish" /><br>
         <br>колличество строк парсинга (все по умолчанию): <input type="text" name="limit" /><br>
-        <br>
-        Варианты парсинга согласно технического задания: <br>
-        вариант 1: выбрать все строки у которых цена от Min и до Max<br>
-        вариант 2: выбрать все строки у которых наименование товара Viatti Vettore Brina V-525 и цена больше Max включительно<br>
-        вариант 3: выбрать все строки у которых артикул больше 100 000 но меньше 1000 000 включительно <br>
-        вариант 4: выбрать все строки у которых артикул начинается с E4100 и заканчиваеться E4723 цена от 5500 до 7000 включительно,
-        и наименование товара содержит: 104R<br>
-
-        <br>выберите вариант выборки:  <select name="select">
-                                            <option value="0"></option>
-                                            <option value="1">вариант 1</option>
-                                            <option value="2">вариант 2</option>
-                                            <option value="3">вариант 3</option>
-                                            <option value="4">вариант 4</option>
-                                       </select>
 
         <br><br><input type="submit" value="Старт" /><br>
     </form>
 </div>
 
 <?php
+
+// Подключаем библиотеку
+
+require_once __DIR__ . "/PHPExcel/Classes/PHPExcel.php";
+// Подключаем модуль
+require_once __DIR__ . "/library/excel_mysql.php";
 
 function DBResult(&$_Result_id) { // Возвращение результата запроса
     $_Res = false;
@@ -79,44 +70,30 @@ if ($_FILES['file']['tmp_name'] && $_POST ) {
 
     if ($_POST['start_price'])
         $start_price = $_POST['start_price'];
-    else $start_price = 0;
 
     if ($_POST['high_price'])
         $high_price = $_POST['high_price'];
-    else $high_price = 1000000;
 
     if ($_POST['id_start'])
         $id_start = $_POST['id_start'];
-    else $id_start = 100000;
 
     if ($_POST['id_finish'])
         $id_finish = $_POST['id_finish'];
-    else $id_finish = 1000000;
 
     if ($_POST['id_n_start'])
-        $id_start = $_POST['id_n_start'];
-    else $id_n_start = 'E4100';
+        $id_n_start = $_POST['id_n_start'];
 
     if ($_POST['id_n_finish'])
         $id_n_finish = $_POST['id_n_finish'];
-    else $id_n_finish = 'E4723';
 
+    if ($_POST['name'])
+        $name = $_POST['name'];
 
-    if ($_POST['select'] && $_POST['select'] != 0 )
-        $choice = $_POST['select'];
-    else {
-        echo "<br><b style='color: red'> не выбран вариант выборки!</b>";
-        exit();
-    }
+    if ($_POST['name_like'])
+        $name_like = $_POST['name_like'];
 
     if ($_POST['limit'])
         $limit = $_POST['limit'];
-
-
-    // Подключаем библиотеку
-    require_once __DIR__ . "/PHPExcel/Classes/PHPExcel.php";
-    // Подключаем модуль
-    require_once __DIR__ . "/library/excel_mysql.php";
 
     // Определяем константу для включения режима отладки (режим отладки выключен)
     define("EXCEL_MYSQL_DEBUG", false);
@@ -142,56 +119,41 @@ if ($_FILES['file']['tmp_name'] && $_POST ) {
     ) ? "OK\n" : "FAIL\n";
     echo "<hr>";
 
-    switch ($choice){
-        case 1 :
-            if($limit){
-                $sql_1 = "SELECT * FROM `original` WHERE price> $start_price and price< $high_price LIMIT $limit ";
-            }else $sql_1 = "SELECT * FROM `original` WHERE price> $start_price and price< $high_price ";
 
-            $res_1 = mysqli_query($connection, $sql_1);
-            $result = DBResult($res_1);  // результат выборки 1
-            break;
+            $sql = "SELECT * FROM `original` WHERE price>0 ";
 
-        case 2 :
-            if ($_POST['name'])
-                $name = $_POST['name'];
-            else {
-                echo "<br><b style='color: red'> не выбрано наименование товара!</b>";
-                exit();
-            }
-            if($limit){
-                $sql_2 = "SELECT * FROM `original` WHERE name = '$name' and price >= $high_price LIMIT $limit " ;
-            }else $sql_2 = "SELECT * FROM `original` WHERE name = '$name' and price >= $high_price " ;
+            if (isset($name) && !isset($name_like))
+                $sql .= " AND name = '$name'";
+            if (isset($name_like) && !isset($name))
+                $sql .= " AND name LIKE '%$name_like%' ";
+            if (isset($name_like) && isset($name))
+                $sql .= " AND name = '$name' OR name LIKE '%$name_like%' ";
+            if (isset($id_n_start) && !isset($id_n_finish))
+                $sql .= " AND id LIKE '%$id_n_start%' ";
+            if (isset($id_n_finish) && !isset($id_n_start))
+                $sql .= " AND id LIKE '%$id_n_finish%' ";
+            if (isset($id_n_start) && isset($id_n_finish))
+                $sql .= " AND id BETWEEN '$id_n_start' AND '$id_n_finish' ";
+            if (isset($id_start) && !isset($id_finish))
+                $sql .= " AND id > '$id_start' ";
+            if (isset($id_finish) && !isset($id_start))
+                $sql .= " AND id <= '$id_finish' ";
+            if (isset($id_finish) && isset($id_start))
+                $sql .= " AND id BETWEEN '$id_start' AND '$id_finish' ";
+            if (isset($start_price))
+                $sql .= " AND price > '$start_price' ";
+            if (isset($high_price))
+                $sql .= " AND price <= '$high_price' ";
+            if (isset($limit))
+                $sql .= " LIMIT $limit";
 
-            $res_2 = mysqli_query($connection, $sql_2);
-            $result = DBResult($res_2);  // результат выборки 2
-            break;
-
-        case 3 :
-            if($limit) {
-                $sql_3 = "SELECT * FROM `original` WHERE id > $id_start AND id <= $id_finish LIMIT $limit ";
-            }else $sql_3 = "SELECT * FROM `original` WHERE id > $id_start AND id <= $id_finish ";
-
-            $res_3 = mysqli_query($connection, $sql_3);
-            $result = DBResult($res_3);  // результат выборки 3
-            break; //SELECT * FROM `original` WHERE id BETWEEN 'E4100' AND 'E4723' AND price BETWEEN 5500 and 7000 AND name LIKE '%104R%'
-
-        case 4 :
-
-            if ($_POST['name_like'])
-                $name_like = $_POST['name_like'];
-            else {
-                echo "<br><b style='color: red'> не выбран предположительный текст в наименовании товара!</b>";
-                exit();
-            }
-            if($limit) {
-                $sql_4 = "SELECT * FROM `original` WHERE id BETWEEN '$id_n_start' AND '$id_n_finish' AND price BETWEEN $start_price and $high_price AND name LIKE '%$name_like%' LIMIT $limit ";
-            }else $sql_4 = "SELECT * FROM `original` WHERE id BETWEEN 'E4100' AND 'E4723' AND price BETWEEN $start_price and $high_price AND name LIKE '%$name_like%'";
-
-            $res_4 = mysqli_query($connection, $sql_4);
-            $result = DBResult($res_4);  // результат выборки 4
-            break;
+    $res = mysqli_query($connection, $sql);
+    if(!$res){
+        echo "<br><b style='color: red'>Проверьте введённые данные!</b>";
+        exit();
     }
+
+    $result = DBResult($res);  // результат выборки 4
 
     if($result == NULL){
         echo "<br><b style='color: red'>Проверьте введённые данные!</b>";
