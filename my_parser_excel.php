@@ -147,15 +147,13 @@ if ($_FILES['file']['tmp_name'] && $_POST ) {
             if (isset($limit))
                 $sql .= " LIMIT $limit";
 
-    //echo $sql; die;
-
     $res = mysqli_query($connection, $sql);
     if(!$res){
         echo "<br><b style='color: red'>Проверьте введённые данные!</b>";
         exit();
     }
 
-    $result = DBResult($res);  // результат выборки 4
+    $result = DBResult($res);  // результат выборки
 
     if($result == NULL){
         echo "<br><b style='color: red'>Проверьте введённые данные!</b>";
@@ -165,14 +163,10 @@ if ($_FILES['file']['tmp_name'] && $_POST ) {
 
     // старт работы
     $objPHPExcel = new PHPExcel();
-    $objPHPExcel = PHPExcel_IOFactory::load($file_name);
 
-    $objWorkSheet = new PHPExcel_Worksheet($objPHPExcel, 'Данные выборки');
-    $objPHPExcel->addSheet($objWorkSheet, 0);
-
-    $objPHPExcel->setActiveSheetIndexByName('Данные выборки'); // перейти на рабочий лист
-    $objWorkSheet->getTabColor()->setRGB('FF0000');
     $active_sheet = $objPHPExcel->getActiveSheet();
+    $active_sheet->setTitle('Данные выборки');
+    $active_sheet->getTabColor()->setRGB('FF0000');
     $active_sheet->getStyle('A1:D1')->getFont()->getColor()->setARGB(PHPExcel_Style_Color::COLOR_RED);
     $active_sheet->getStyle('A1:D1')->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
     $objPHPExcel->getActiveSheet()->getStyle('B2')->getBorders()->getBottom()->setBorderStyle(PHPExcel_Style_Border::BORDER_THICK);
@@ -206,7 +200,7 @@ if ($_FILES['file']['tmp_name'] && $_POST ) {
     $objPHPExcel = new PHPExcel();
     $objPHPExcel = PHPExcel_IOFactory::load('./research.xls');
 
-    $objWorksheet = $objPHPExcel->setActiveSheetIndex(); // перейти на рабочий лист
+    $objWorksheet = $objPHPExcel->setActiveSheetIndex(0); // перейти на рабочий лист
     $highestRow = $objWorksheet->getHighestRow(); // e.g. 10
     $highestColumn = $objWorksheet->getHighestColumn(); // e.g 'F'
 
