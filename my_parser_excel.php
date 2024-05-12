@@ -45,10 +45,17 @@
 <?php
 
 // Подключаем библиотеку
-
-require_once __DIR__ . "/PHPExcel/Classes/PHPExcel.php";
+require 'vendor/autoload.php';
 // Подключаем модуль
-require_once __DIR__ . "/library/excel_mysql.php";
+require_once __DIR__ . "/library/excel2db.php";
+
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Font;
+use PhpOffice\PhpSpreadsheet\Writer\Xls;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
 
 function DBResult(&$_Result_id) { // Возвращение результата запроса
     $_Res = false;
@@ -95,29 +102,38 @@ if ($_FILES['file']['tmp_name'] && $_POST ) {
     if ($_POST['limit'])
         $limit = $_POST['limit'];
 
-    // Определяем константу для включения режима отладки (режим отладки выключен)
-    define("EXCEL_MYSQL_DEBUG", false);
+
     // Соединение с базой MySQL
-    $connection = new mysqli("localhost", "root", "", "excel_mysql_base");
 
-    // Выбираем кодировку UTF-8
-    $connection->set_charset("utf8");
+    $host = 'localhost';
+    $db   = 'excel_mysql_base';
+    $user = 'root';
+    $pass = '';
+    $charset = 'utf8';
 
-    // загрузка в базу данных оригинальной таблицы
-    $excel_mysql_import = new Excel_mysql($connection, $file_name);
-    echo "<br>"."запись в базу данных файла: ".$file_name.". ";
-    echo $excel_mysql_import->excel_to_mysql_by_index(
-        "original",
-        0,
-        array(
-            "id",
-            "name",
-            "price",
-            "store",
-            null,
-        )
-    ) ? "OK\n" : "FAIL\n";
-    echo "<hr>";
+    $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
+    $opts= [
+        \PDO::ATTR_ERRMODE            => \PDO::ERRMODE_EXCEPTION,
+        \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
+        \PDO::ATTR_EMULATE_PREPARES   => false,
+    ];
+
+    // подключение к базе
+    $pdo = new PDO($dsn, $user, $pass, $opts);
+
+    // класс, который читает xls файл
+    $spreadsheet = new Spreadsheet();
+    $reader = new Xls($spreadsheet);
+    // получаем Excel-книгу
+    $reader->load($file_name);
+
+    // замеряем время работы скрипта
+    $startTime = microtime(true);
+    // запускаем экспорт данных
+    $table = 'original';
+    excel2db($spreadsheet, $pdo, $table, false);
+    $elapsedTime = round(microtime(true) - $startTime, 4);
+    echo "<br><b>Загрузка в базу данных: $elapsedTime с.</b><br>";
 
 
             $sql = "SELECT * FROM `original` WHERE price>0 ";
@@ -147,6 +163,10 @@ if ($_FILES['file']['tmp_name'] && $_POST ) {
             if (isset($limit))
                 $sql .= " LIMIT $limit";
 
+    $connection = new mysqli("localhost", "root", "", "excel_mysql_base");
+    // Выбираем кодировку UTF-8
+    $connection->set_charset($charset);
+
     $res = mysqli_query($connection, $sql);
     if(!$res){
         echo "<br><b style='color: red'>Проверьте введённые данные!</b>";
@@ -162,14 +182,37 @@ if ($_FILES['file']['tmp_name'] && $_POST ) {
 
 
     // старт работы
-    $objPHPExcel = new PHPExcel();
+    $spreadsheet = new Spreadsheet();
 
-    $active_sheet = $objPHPExcel->getActiveSheet();
+    $active_sheet = $spreadsheet->getActiveSheet();
     $active_sheet->setTitle('Данные выборки');
     $active_sheet->getTabColor()->setRGB('FF0000');
-    $active_sheet->getStyle('A1:D1')->getFont()->getColor()->setARGB(PHPExcel_Style_Color::COLOR_RED);
-    $active_sheet->getStyle('A1:D1')->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-    $objPHPExcel->getActiveSheet()->getStyle('B2')->getBorders()->getBottom()->setBorderStyle(PHPExcel_Style_Border::BORDER_THICK);
+    $active_sheet->getStyle('A1:D1')->applyFromArray([
+        'font' => [
+            'name' => 'Arial',
+            'bold' => true,
+            'italic' => false,
+            'underline' => Font::UNDERLINE_DOUBLE,
+            'strikethrough' => false,
+            'color' => [
+                'rgb' => 'red'
+            ]
+        ],
+        'borders' => [
+            'allBorders' => [
+                'borderStyle' => Border::BORDER_THIN,
+                'color' => [
+                    'rgb' => 'black'
+                ]
+            ],
+        ],
+        'alignment' => [
+            'horizontal' => Alignment::HORIZONTAL_CENTER,
+            'vertical' => Alignment::VERTICAL_CENTER,
+            'wrapText' => true,
+        ]
+    ]);
+
 
     $active_sheet->getColumnDimension('A')->setWidth(20);
     $active_sheet->getColumnDimension('B')->setWidth(40);
@@ -179,62 +222,66 @@ if ($_FILES['file']['tmp_name'] && $_POST ) {
     //Вставка данных из выборки 1
     $start = 2;
     $i = 0;
-    $active_sheet->setCellValueByColumnAndRow(0, 1, 'id');
-    $active_sheet->setCellValueByColumnAndRow(1, 1, 'name');
-    $active_sheet->setCellValueByColumnAndRow(2, 1, 'price');
-    $active_sheet->setCellValueByColumnAndRow(3, 1, 'store');
+    $active_sheet->setCellValue('A1', 'id');
+    $active_sheet->setCellValue('B1', 'name');
+    $active_sheet->setCellValue('C1', 'price');
+    $active_sheet->setCellValue('D1', 'store');
 
     foreach ($result as $row){
         $next = $start + $i;
         if ($row['id'] == NULL) continue;
-        $active_sheet->setCellValueByColumnAndRow(0, $next, $row['id']);
-        $active_sheet->setCellValueByColumnAndRow(1, $next, $row['name']);
-        $active_sheet->setCellValueByColumnAndRow(2, $next, $row['price']);
-        $active_sheet->setCellValueByColumnAndRow(3, $next, $row['store']);
+        $active_sheet->setCellValue('A'.$next, $row['id']);
+        $active_sheet->setCellValue('B'.$next, $row['name']);
+        $active_sheet->setCellValue('C'.$next, $row['price']);
+        $active_sheet->setCellValue('D'.$next, $row['store']);
         $i++;
     }
 
-//сохранить лист с выборкой в файл research.xls
-    $excel_writer = new PHPExcel_Writer_Excel5($objPHPExcel);
-    $excel_writer->save("./research.xls");
-    $objPHPExcel = new PHPExcel();
-    $objPHPExcel = PHPExcel_IOFactory::load('./research.xls');
+    //сохранить лист с выборкой в файл research.xls
+    // Выбросим исключение в случае, если не удастся сохранить файл
+    try {
+        $writer = new Xls($spreadsheet);
+        $writer->save('./research.xls');
 
-    $objWorksheet = $objPHPExcel->setActiveSheetIndex(0); // перейти на рабочий лист
-    $highestRow = $objWorksheet->getHighestRow(); // e.g. 10
-    $highestColumn = $objWorksheet->getHighestColumn(); // e.g 'F'
-
-    $highestColumnIndex = PHPExcel_Cell::columnIndexFromString($highestColumn); // e.g. 5
-// вывод на экран
-    echo "<br><b> Результаты выборки (research.xls) </b><br><br>";
-    echo '<table style="width: 80%">' . "\n";
-    for ($row = 1; $row <= $highestRow; ++$row) {
-        echo '<tr>' . "\n";
-
-        for ($col = 0; $col <= $highestColumnIndex; ++$col) {
-            echo '<td style="width: 30%">' . $objWorksheet->getCellByColumnAndRow($col, $row)->getValue() . '</td>' . "\n";
-        }
-
-        echo '</tr>' . "\n";
+    } catch (PhpOffice\PhpSpreadsheet\Writer\Exception $e) {
+        echo $e->getMessage();
     }
-    echo '</table>' . "\n";
 
-    // сохранить в базу данных
-    $excel_mysql_import = new Excel_mysql($connection, 'research.xls');
-    // Указываем названия столбцов в таблице MySQL
-    echo "<br>"."запись в базу данных 'research': ";
-    echo $excel_mysql_import->excel_to_mysql_by_index(
-        "research",
-        0,
-        array(
-            "id",
-            "name",
-            "price",
-            "store",
-            null,
-        )
-    ) ? "OK\n" : "FAIL\n";
-    echo "<hr>";
+    $reader = IOFactory::createReader('Xls');
+    $spreadsheet = $reader->load('./research.xls');
+    // Количество листов
+    $spreadsheet->setActiveSheetIndex(0); // получить данные из указанного листа
+    $sheet = $spreadsheet->getActiveSheet();
+
+    // формирование html-кода с данными
+    $html = '<br><table style="width: 70%;">';
+    foreach ($sheet->getRowIterator() as $row) {
+        $html .= '<tr>';
+        $cellIterator = $row->getCellIterator();
+        foreach ($cellIterator as $cell) {
+
+            // значение текущей ячейки
+            $value = $cell->getCalculatedValue();
+
+            $html .= '<td>'.$value.'</td>';
+        }
+        $html .= '<tr>';
+    }
+    $html .= '</table>';
+
+    // вывод данных
+    echo $html;
+
+    // сохранить в базу данных результат выборки
+    // замеряем время работы скрипта
+    $startTime = microtime(true);
+    // запускаем экспорт данных
+    // подключение к базе
+
+    $table = 'research';
+    excel2db($spreadsheet, $pdo, $table, false);
+    $elapsedTime = round(microtime(true) - $startTime, 4);
+    echo "<br><b>Загрузка в базу данных: $elapsedTime с.</b><br>";
 
 
     $_FILES['file']['tmp_name'] = "";
