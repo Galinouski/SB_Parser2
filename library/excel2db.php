@@ -1,8 +1,6 @@
 <?php
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Shared\Date as PHPSpreadsheetDate;
-
 
 /**
  * @param Spreadsheet $spreadsheet - Excel-книга с данными

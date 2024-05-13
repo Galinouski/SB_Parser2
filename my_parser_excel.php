@@ -242,14 +242,14 @@ if ($_FILES['file']['tmp_name'] && $_POST ) {
     // Выбросим исключение в случае, если не удастся сохранить файл
     try {
         $writer = new Xls($spreadsheet);
-        $writer->save('./research.xls');
+        $writer->save('research.xls');
 
     } catch (PhpOffice\PhpSpreadsheet\Writer\Exception $e) {
         echo $e->getMessage();
     }
 
     $reader = IOFactory::createReader('Xls');
-    $spreadsheet = $reader->load('./research.xls');
+    $spreadsheet = $reader->load('research.xls');
     $spreadsheet->setActiveSheetIndex(0); // получить данные из указанного листа
     $sheet = $spreadsheet->getActiveSheet();
 
