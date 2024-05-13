@@ -123,15 +123,16 @@ if ($_FILES['file']['tmp_name'] && $_POST ) {
 
     // класс, который читает xls файл
     $spreadsheet = new Spreadsheet();
-    $reader = new Xls($spreadsheet);
-    // получаем Excel-книгу
-    $reader->load($file_name);
+    $reader = IOFactory::createReader('Xls');
+    $spreadsheet = $reader->load($file_name);
+    $spreadsheet->setActiveSheetIndex(0); // получить данные из указанного листа
+    $sheet = $spreadsheet->getActiveSheet();
 
     // замеряем время работы скрипта
     $startTime = microtime(true);
     // запускаем экспорт данных
     $table = 'original';
-    excel2db($spreadsheet, $pdo, $table, false);
+    excel2db($spreadsheet, $pdo, $table);
     $elapsedTime = round(microtime(true) - $startTime, 4);
     echo "<br><b>Загрузка в базу данных: $elapsedTime с.</b><br>";
 
@@ -249,7 +250,6 @@ if ($_FILES['file']['tmp_name'] && $_POST ) {
 
     $reader = IOFactory::createReader('Xls');
     $spreadsheet = $reader->load('./research.xls');
-    // Количество листов
     $spreadsheet->setActiveSheetIndex(0); // получить данные из указанного листа
     $sheet = $spreadsheet->getActiveSheet();
 
@@ -279,7 +279,7 @@ if ($_FILES['file']['tmp_name'] && $_POST ) {
     // подключение к базе
 
     $table = 'research';
-    excel2db($spreadsheet, $pdo, $table, false);
+    excel2db($spreadsheet, $pdo, $table);
     $elapsedTime = round(microtime(true) - $startTime, 4);
     echo "<br><b>Загрузка в базу данных: $elapsedTime с.</b><br>";
 

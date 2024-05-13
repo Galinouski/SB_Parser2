@@ -8,10 +8,9 @@ use PhpOffice\PhpSpreadsheet\Shared\Date as PHPSpreadsheetDate;
  * @param Spreadsheet $spreadsheet - Excel-книга с данными
  * @param PDO $pdo   - PDO-подключение к базе данных
  * @param string $table  - имя таблицы в базе данных
- * @param bool $limit_execution - ограничивает количество строк экспортируемых в базу (для тестирования)
  * @throws \PhpOffice\PhpSpreadsheet\Exception
  */
-function excel2db(Spreadsheet $spreadsheet, PDO $pdo, $table, $limit_execution = true)
+function excel2db(Spreadsheet $spreadsheet, PDO $pdo, $table)
 {
     // получает названия листов книги в виде массива
     $sheetNames = $spreadsheet->getSheetNames();
@@ -27,14 +26,15 @@ function excel2db(Spreadsheet $spreadsheet, PDO $pdo, $table, $limit_execution =
         // последняя строка в листе
         $highestRow = $sheet->getHighestRow('A');
 
-        // SQL-запрос на вставку данных в базу
+        // SQL-запросы на вставку данных в базу
 
-        //$query_string = "CREATE TABLE IF NOT EXISTS {$table_name} ({$columns_types_list}{$columns_keys}) COLLATE = '{$table_encoding}' ENGINE = {$table_engine}";
-        //CREATE TABLE `excel_mysql_base`.`research` (`id` TEXT NOT NULL , `name` TEXT NOT NULL , `price` TEXT NOT NULL , `store` TEXT NOT NULL ) ENGINE = InnoDB;
+        $query_string = "DROP TABLE IF EXISTS $table ";
+        $stmt = $pdo->prepare($query_string);
+        $res = $stmt->execute();
 
-//        $query_string = "CREATE TABLE IF NOT EXISTS $table (`id` TEXT NOT NULL , `name` TEXT NOT NULL , `price` TEXT NOT NULL , `store` TEXT NOT NULL ) ENGINE = InnoDB ";
-//        $stmt = $pdo->prepare($query_string);
-//        $res = $stmt->execute();
+        $query_string = "CREATE TABLE IF NOT EXISTS $table (`id` TEXT NULL , `name` TEXT NULL , `price` TEXT NULL , `store` TEXT NULL ) ENGINE = InnoDB ";
+        $stmt = $pdo->prepare($query_string);
+        $res = $stmt->execute();
 
         $sql = "INSERT INTO $table (
                                id, name, price, store
@@ -44,9 +44,12 @@ function excel2db(Spreadsheet $spreadsheet, PDO $pdo, $table, $limit_execution =
         // подготовленное SQL-выражение
         $stmt = $pdo->prepare($sql);
 
+        //$highestRow = 10;
+        //var_dump($highestRow); die;
+
         // проходимся по каждой строке в листе
         // счетчик начинается с 2-ой строки, так как первая строка - это заголовок
-        for ($i = 1; $i < $highestRow + 1; $i++)
+        for ($i = 2; $i < $highestRow + 1; $i++)
         {
             // получаем значения из ячеек столбцов
             $id = $sheet->getCell('A' . $i)->getValue();
