@@ -72,7 +72,7 @@ function DBResult(&$_Result_id) { // Возвращение результата
     return $_Res;
 }
 
-if (isset($_FILES['file']['tmp_name']) && $_POST ) {
+if ($_FILES['file']['tmp_name'] && $_POST ) {
     $file_name = $_FILES['file']['name'];
 
     if ($_POST['start_price'])
