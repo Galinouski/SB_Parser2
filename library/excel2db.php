@@ -42,9 +42,6 @@ function excel2db(Spreadsheet $spreadsheet, PDO $pdo, $table)
         // подготовленное SQL-выражение
         $stmt = $pdo->prepare($sql);
 
-        //$highestRow = 10;
-        //var_dump($highestRow); die;
-
         // проходимся по каждой строке в листе
         // счетчик начинается с 2-ой строки, так как первая строка - это заголовок
         for ($i = 2; $i < $highestRow + 1; $i++)
@@ -61,7 +58,7 @@ function excel2db(Spreadsheet $spreadsheet, PDO $pdo, $table)
             $stmt->bindParam(':price', $price);
             $stmt->bindParam(':store', $store);
 
-            $res = $stmt->execute();
+            $stmt->execute();
         }
     }
 }

@@ -57,21 +57,6 @@ use PhpOffice\PhpSpreadsheet\Writer\Xls;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
 
-function DBResult(&$_Result_id) { // Возвращение результата запроса
-    $_Res = false;
-    if ($_Result_id and ($_Result_id !== true)) {
-        $_Res = array();
-        while ($_Row = mysqli_fetch_assoc($_Result_id)) {
-            $_Res[] = $_Row;
-        }
-    } elseif ($_Result_id === true) {
-        $_Res = true;
-    } else {
-        return null;
-    }
-    return $_Res;
-}
-
 if ($_FILES['file']['tmp_name'] && $_POST ) {
     $file_name = $_FILES['file']['name'];
 
@@ -119,7 +104,12 @@ if ($_FILES['file']['tmp_name'] && $_POST ) {
     ];
 
     // подключение к базе
-    $pdo = new PDO($dsn, $user, $pass, $opts);
+
+    try {
+        $pdo = new PDO($dsn, $user, $pass, $opts);
+    } catch (PDOException $e) {
+        die($e->getMessage());
+    }
 
     // класс, который читает xls файл
     $spreadsheet = new Spreadsheet();
@@ -136,51 +126,88 @@ if ($_FILES['file']['tmp_name'] && $_POST ) {
     $elapsedTime = round(microtime(true) - $startTime, 4);
     echo "<br><b>Загрузка в базу данных: $elapsedTime с.</b><br>";
 
+/*
+    $sql = "SELECT * FROM `original` WHERE price>0 ";
 
-            $sql = "SELECT * FROM `original` WHERE price>0 ";
+    if (isset($name) && !isset($name_like))
+        $sql .= " AND 'name' = :name ";
+    if (isset($name_like) && !isset($name))
+        $sql .= " AND 'name' LIKE '% :name_like %' ";
+    if (isset($name_like) && isset($name))
+        $sql .= " AND 'name' = :name OR 'name' LIKE '% :name_like %' ";
+    if (isset($id_n_start) && !isset($id_n_finish))
+        $sql .= " AND 'id' LIKE '% :id_n_start %' ";
+    if (isset($id_n_finish) && !isset($id_n_start))
+        $sql .= " AND 'id' LIKE '% :id_n_finish %' ";
+    if (isset($id_n_start) && isset($id_n_finish))
+        $sql .= " AND 'id' BETWEEN ' :id_n_start ' AND ' :id_n_finish ' ";
+    if (isset($id_start) && !isset($id_finish))
+        $sql .= " AND 'id' > ' :id_start ' ";
+    if (isset($id_finish) && !isset($id_start))
+        $sql .= " AND 'id' <= ' :id_finish ' ";
+    if (isset($id_finish) && isset($id_start))
+        $sql .= " AND 'id' BETWEEN ' :id_start ' AND ' :id_finish ' ";
+    if (isset($start_price))
+        $sql .= " AND 'price' > :start_price ";
+    if (isset($high_price))
+        $sql .= " AND 'price' <= :high_price ";
+    if (isset($limit))
+        $sql .= " LIMIT :limit";
 
-            if (isset($name) && !isset($name_like))
-                $sql .= " AND name = '$name'";
-            if (isset($name_like) && !isset($name))
-                $sql .= " AND name LIKE '%$name_like%' ";
-            if (isset($name_like) && isset($name))
-                $sql .= " AND name = '$name' OR name LIKE '%$name_like%' ";
-            if (isset($id_n_start) && !isset($id_n_finish))
-                $sql .= " AND id LIKE '%$id_n_start%' ";
-            if (isset($id_n_finish) && !isset($id_n_start))
-                $sql .= " AND id LIKE '%$id_n_finish%' ";
-            if (isset($id_n_start) && isset($id_n_finish))
-                $sql .= " AND id BETWEEN '$id_n_start' AND '$id_n_finish' ";
-            if (isset($id_start) && !isset($id_finish))
-                $sql .= " AND id > '$id_start' ";
-            if (isset($id_finish) && !isset($id_start))
-                $sql .= " AND id <= '$id_finish' ";
-            if (isset($id_finish) && isset($id_start))
-                $sql .= " AND id BETWEEN '$id_start' AND '$id_finish' ";
-            if (isset($start_price))
-                $sql .= " AND price > $start_price ";
-            if (isset($high_price))
-                $sql .= " AND price <= $high_price ";
-            if (isset($limit))
-                $sql .= " LIMIT $limit";
+    //var_dump($sql); die;
 
-    $connection = new mysqli("localhost", "root", "", "excel_mysql_base");
-    // Выбираем кодировку UTF-8
-    $connection->set_charset($charset);
+    $stmt = $pdo->prepare($sql);
 
-    $res = mysqli_query($connection, $sql);
-    if(!$res){
-        echo "<br><b style='color: red'>Проверьте введённые данные!</b>";
-        exit();
+    $stmt->bindParam(':name', $name);
+    $stmt->bindParam(':name_like', $name_like);
+    $stmt->bindParam(':id_n_start', $id_n_start);
+    $stmt->bindParam(':id_n_finish', $id_n_finish);
+    $stmt->bindParam(':id_start', $id_start);
+    $stmt->bindParam(':id_finish', $id_finish);
+    $stmt->bindParam(':start_price', $start_price);
+    $stmt->bindParam(':high_price', $high_price);
+    $stmt->bindParam(':limit', $limit);
+
+    $stmt->execute(array('name' => $name, 'name_like' => $name_like, 'id_n_start' => $id_n_start, 'id_n_finish' => $id_n_finish,
+        'id_start' => $id_start, 'id_finish' => $id_finish, 'start_price' => $start_price, 'high_price' => $high_price));
+*/
+    $sql = "SELECT * FROM `original` WHERE price>0 ";
+
+    if (isset($name) && !isset($name_like))
+        $sql .= " AND name = $name ";
+    if (isset($name_like) && !isset($name))
+        $sql .= " AND name LIKE '% $name_like %' ";
+    if (isset($name_like) && isset($name))
+        $sql .= " AND name = $name OR name LIKE '% $name_like %' ";
+    if (isset($id_n_start) && !isset($id_n_finish))
+        $sql .= " AND id LIKE '% $id_n_start %' ";
+    if (isset($id_n_finish) && !isset($id_n_start))
+        $sql .= " AND id LIKE '% $id_n_finish %' ";
+    if (isset($id_n_start) && isset($id_n_finish))
+        $sql .= " AND id BETWEEN ' $id_n_start ' AND ' $id_n_finish ' ";
+    if (isset($id_start) && !isset($id_finish))
+        $sql .= " AND id > ' $id_start ' ";
+    if (isset($id_finish) && !isset($id_start))
+        $sql .= " AND id <= ' $id_finish ' ";
+    if (isset($id_finish) && isset($id_start))
+        $sql .= " AND id BETWEEN ' $id_start ' AND ' $id_finish ' ";
+    if (isset($start_price))
+        $sql .= " AND price > $start_price ";
+    if (isset($high_price))
+        $sql .= " AND price <= $high_price ";
+    if (isset($limit))
+        $sql .= " LIMIT $limit";
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute();
+
+    $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    if(!$result){
+        echo "Пожалуйста, проверьте введённые данные.";
     }
 
-    $result = DBResult($res);  // результат выборки
-
-    if($result == NULL){
-        echo "<br><b style='color: red'>Проверьте введённые данные!</b>";
-        exit();
-    }
-
+    //var_dump($result); die;
 
     // старт работы
     $spreadsheet = new Spreadsheet();
@@ -275,15 +302,13 @@ if ($_FILES['file']['tmp_name'] && $_POST ) {
     // сохранить в базу данных результат выборки
     // замеряем время работы скрипта
     $startTime = microtime(true);
-    // запускаем экспорт данных
-    // подключение к базе
 
     $table = 'research';
     excel2db($spreadsheet, $pdo, $table);
     $elapsedTime = round(microtime(true) - $startTime, 4);
     echo "<br><b>Загрузка в базу данных: $elapsedTime с.</b><br>";
 
-
+    $dsn = NULL;
     $_FILES['file']['tmp_name'] = "";
 
 };
