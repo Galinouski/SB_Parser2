@@ -62,30 +62,39 @@ if ($_FILES['file']['tmp_name'] && $_POST ) {
 
     if ($_POST['start_price'])
         $start_price = $_POST['start_price'];
+    else $start_price = '';
 
     if ($_POST['high_price'])
         $high_price = $_POST['high_price'];
+    else $high_price = '';
 
     if ($_POST['id_start'])
         $id_start = $_POST['id_start'];
+    else $id_start = '';
 
     if ($_POST['id_finish'])
         $id_finish = $_POST['id_finish'];
+    else $id_finish = '';
 
     if ($_POST['id_n_start'])
         $id_n_start = $_POST['id_n_start'];
+    else $id_n_start = '';
 
     if ($_POST['id_n_finish'])
         $id_n_finish = $_POST['id_n_finish'];
+    else $id_n_finish = '';
 
     if ($_POST['name'])
         $name = $_POST['name'];
+    else $name = '';
 
     if ($_POST['name_like'])
         $name_like = $_POST['name_like'];
+    else $name_like = '';
 
     if ($_POST['limit'])
         $limit = $_POST['limit'];
+    else $limit = '';
 
 
     // Соединение с базой MySQL
@@ -128,36 +137,33 @@ if ($_FILES['file']['tmp_name'] && $_POST ) {
 
 /*
     $sql = "SELECT * FROM `original` WHERE price>0 ";
-
-    if (isset($name) && !isset($name_like))
-        $sql .= " AND 'name' = :name ";
-    if (isset($name_like) && !isset($name))
-        $sql .= " AND 'name' LIKE '% :name_like %' ";
-    if (isset($name_like) && isset($name))
-        $sql .= " AND 'name' = :name OR 'name' LIKE '% :name_like %' ";
-    if (isset($id_n_start) && !isset($id_n_finish))
-        $sql .= " AND 'id' LIKE '% :id_n_start %' ";
-    if (isset($id_n_finish) && !isset($id_n_start))
-        $sql .= " AND 'id' LIKE '% :id_n_finish %' ";
-    if (isset($id_n_start) && isset($id_n_finish))
-        $sql .= " AND 'id' BETWEEN ' :id_n_start ' AND ' :id_n_finish ' ";
-    if (isset($id_start) && !isset($id_finish))
-        $sql .= " AND 'id' > ' :id_start ' ";
-    if (isset($id_finish) && !isset($id_start))
-        $sql .= " AND 'id' <= ' :id_finish ' ";
-    if (isset($id_finish) && isset($id_start))
-        $sql .= " AND 'id' BETWEEN ' :id_start ' AND ' :id_finish ' ";
-    if (isset($start_price))
-        $sql .= " AND 'price' > :start_price ";
-    if (isset($high_price))
-        $sql .= " AND 'price' <= :high_price ";
-    if (isset($limit))
+    if ( $name!='' && $name_like =='')
+        $sql .= " AND name = :name ";
+    if ($name_like!='' && $name=='')
+        $sql .= " AND name LIKE '% :name_like %' ";
+    if ($name_like!='' && $name !='')
+        $sql .= " AND name = :name OR name LIKE '% :name_like %' ";
+    if ($id_n_start!='' && $id_n_finish=='')
+        $sql .= " AND id LIKE '% :id_n_start %' ";
+    if ($id_n_finish!='' && $id_n_start=='')
+        $sql .= " AND id LIKE '% :id_n_finish %' ";
+    if ($id_n_start!='' && $id_n_finish!='')
+        $sql .= " AND id BETWEEN ' :id_n_start ' AND ' :id_n_finish ' ";
+    if ($id_start!='' && $id_finish=='')
+        $sql .= " AND id > ' :id_start ' ";
+    if ($id_finish!='' && $id_start=='')
+        $sql .= " AND id <= ' :id_finish ' ";
+    if ($id_finish!='' && $id_start=='')
+        $sql .= " AND id BETWEEN ' :id_start ' AND ' :id_finish ' ";
+    if ($start_price!='')
+        $sql .= " AND price > :start_price ";
+    if ($high_price!='')
+        $sql .= " AND price <= :high_price ";
+    if ($limit!='')
         $sql .= " LIMIT :limit";
-
     //var_dump($sql); die;
-
     $stmt = $pdo->prepare($sql);
-
+    //$stmt->debugDumpParams(); die;
     $stmt->bindParam(':name', $name);
     $stmt->bindParam(':name_like', $name_like);
     $stmt->bindParam(':id_n_start', $id_n_start);
@@ -167,36 +173,37 @@ if ($_FILES['file']['tmp_name'] && $_POST ) {
     $stmt->bindParam(':start_price', $start_price);
     $stmt->bindParam(':high_price', $high_price);
     $stmt->bindParam(':limit', $limit);
+    //$stmt->debugDumpParams();
+    $stmt->execute(); */
 
-    $stmt->execute(array('name' => $name, 'name_like' => $name_like, 'id_n_start' => $id_n_start, 'id_n_finish' => $id_n_finish,
-        'id_start' => $id_start, 'id_finish' => $id_finish, 'start_price' => $start_price, 'high_price' => $high_price));
-*/
     $sql = "SELECT * FROM `original` WHERE price>0 ";
 
-    if (isset($name) && !isset($name_like))
-        $sql .= " AND name = $name ";
-    if (isset($name_like) && !isset($name))
+    if ($name!='' && $name_like=='')
+        $sql .= " AND name = '$name' ";
+    if ($name_like!='' && $name=='')
         $sql .= " AND name LIKE '% $name_like %' ";
-    if (isset($name_like) && isset($name))
-        $sql .= " AND name = $name OR name LIKE '% $name_like %' ";
-    if (isset($id_n_start) && !isset($id_n_finish))
+    if ($name_like!='' && $name!='')
+        $sql .= " AND name = '$name' OR name LIKE '% $name_like %' ";
+    if ($id_n_start!='' && $id_n_finish=='')
         $sql .= " AND id LIKE '% $id_n_start %' ";
-    if (isset($id_n_finish) && !isset($id_n_start))
+    if ($id_n_finish!='' && $id_n_start=='')
         $sql .= " AND id LIKE '% $id_n_finish %' ";
-    if (isset($id_n_start) && isset($id_n_finish))
+    if ($id_n_start=='' && $id_n_finish!='')
         $sql .= " AND id BETWEEN ' $id_n_start ' AND ' $id_n_finish ' ";
-    if (isset($id_start) && !isset($id_finish))
+    if ($id_start!='' && $id_finish=='')
         $sql .= " AND id > ' $id_start ' ";
-    if (isset($id_finish) && !isset($id_start))
+    if ($id_finish!='' && $id_start=='')
         $sql .= " AND id <= ' $id_finish ' ";
-    if (isset($id_finish) && isset($id_start))
+    if ($id_finish!='' && $id_start!='')
         $sql .= " AND id BETWEEN ' $id_start ' AND ' $id_finish ' ";
-    if (isset($start_price))
+    if ($start_price!='')
         $sql .= " AND price > $start_price ";
-    if (isset($high_price))
+    if ($high_price!='')
         $sql .= " AND price <= $high_price ";
-    if (isset($limit))
+    if ($limit!='')
         $sql .= " LIMIT $limit";
+
+    //var_dump($sql);
 
     $stmt = $pdo->prepare($sql);
     $stmt->execute();
@@ -206,8 +213,6 @@ if ($_FILES['file']['tmp_name'] && $_POST ) {
     if(!$result){
         echo "Пожалуйста, проверьте введённые данные.";
     }
-
-    //var_dump($result); die;
 
     // старт работы
     $spreadsheet = new Spreadsheet();
