@@ -133,48 +133,7 @@ if ($_FILES['file']['tmp_name'] && $_POST ) {
     $table = 'original';
     excel2db($spreadsheet, $pdo, $table);
     $elapsedTime = round(microtime(true) - $startTime, 4);
-    echo "<br><b>Загрузка в базу данных: $elapsedTime с.</b><br>";
-
-/*
-    $sql = "SELECT * FROM `original` WHERE price>0 ";
-    if ( $name!='' && $name_like =='')
-        $sql .= " AND name = :name ";
-    if ($name_like!='' && $name=='')
-        $sql .= " AND name LIKE '% :name_like %' ";
-    if ($name_like!='' && $name !='')
-        $sql .= " AND name = :name OR name LIKE '% :name_like %' ";
-    if ($id_n_start!='' && $id_n_finish=='')
-        $sql .= " AND id LIKE '% :id_n_start %' ";
-    if ($id_n_finish!='' && $id_n_start=='')
-        $sql .= " AND id LIKE '% :id_n_finish %' ";
-    if ($id_n_start!='' && $id_n_finish!='')
-        $sql .= " AND id BETWEEN ' :id_n_start ' AND ' :id_n_finish ' ";
-    if ($id_start!='' && $id_finish=='')
-        $sql .= " AND id > ' :id_start ' ";
-    if ($id_finish!='' && $id_start=='')
-        $sql .= " AND id <= ' :id_finish ' ";
-    if ($id_finish!='' && $id_start=='')
-        $sql .= " AND id BETWEEN ' :id_start ' AND ' :id_finish ' ";
-    if ($start_price!='')
-        $sql .= " AND price > :start_price ";
-    if ($high_price!='')
-        $sql .= " AND price <= :high_price ";
-    if ($limit!='')
-        $sql .= " LIMIT :limit";
-    //var_dump($sql); die;
-    $stmt = $pdo->prepare($sql);
-    //$stmt->debugDumpParams(); die;
-    $stmt->bindParam(':name', $name);
-    $stmt->bindParam(':name_like', $name_like);
-    $stmt->bindParam(':id_n_start', $id_n_start);
-    $stmt->bindParam(':id_n_finish', $id_n_finish);
-    $stmt->bindParam(':id_start', $id_start);
-    $stmt->bindParam(':id_finish', $id_finish);
-    $stmt->bindParam(':start_price', $start_price);
-    $stmt->bindParam(':high_price', $high_price);
-    $stmt->bindParam(':limit', $limit);
-    //$stmt->debugDumpParams();
-    $stmt->execute(); */
+    echo "<br><b>Загрузка в базу данных 'original': $elapsedTime с.</b><br>";
 
     $sql = "SELECT * FROM `original` WHERE price>0 ";
 
@@ -203,15 +162,12 @@ if ($_FILES['file']['tmp_name'] && $_POST ) {
     if ($limit!='')
         $sql .= " LIMIT $limit";
 
-    //var_dump($sql);
-
     $stmt = $pdo->prepare($sql);
     $stmt->execute();
-
     $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     if(!$result){
-        echo "Пожалуйста, проверьте введённые данные.";
+        echo "<br><br><span style='color: red'>Пожалуйста, проверьте введённые данные.</span>";
     }
 
     // старт работы
@@ -252,7 +208,7 @@ if ($_FILES['file']['tmp_name'] && $_POST ) {
     $active_sheet->getColumnDimension('C')->setWidth(20);
     $active_sheet->getColumnDimension('D')->setWidth(20);
 
-    //Вставка данных из выборки 1
+    //Вставка данных из выборки
     $start = 2;
     $i = 0;
     $active_sheet->setCellValue('A1', 'id');
@@ -311,7 +267,7 @@ if ($_FILES['file']['tmp_name'] && $_POST ) {
     $table = 'research';
     excel2db($spreadsheet, $pdo, $table);
     $elapsedTime = round(microtime(true) - $startTime, 4);
-    echo "<br><b>Загрузка в базу данных: $elapsedTime с.</b><br>";
+    echo "<br><b>Загрузка в базу данных 'research': $elapsedTime с.</b><br>";
 
     $dsn = NULL;
     $_FILES['file']['tmp_name'] = "";
