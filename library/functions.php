@@ -1,13 +1,57 @@
 <?php
 
+use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xls;
 
 /**
  * @param Spreadsheet $spreadsheet - Excel-книга с данными
+ * @param string $fileName  - имя xls файла
  * @param PDO $pdo   - PDO-подключение к базе данных
  * @param string $table  - имя таблицы в базе данных
  * @throws \PhpOffice\PhpSpreadsheet\Exception
  */
+
+
+function readingXls($fileName){
+    // Чтение xls файл с начальными данными
+    //$spreadsheet = new Spreadsheet();
+    $reader = IOFactory::createReader('Xls');
+    $spreadsheet = $reader->load($fileName);
+
+    return $spreadsheet;
+}
+
+function savingXls($spreadsheet, $fileName){
+    try {
+        $writer = new Xls($spreadsheet);
+        $writer->save($fileName);
+
+    } catch (PhpOffice\PhpSpreadsheet\Writer\Exception $e) {
+        echo $e->getMessage();
+    }
+}
+
+function showResults ($sheet) {
+    // формирование html-кода с данными
+    $html = '<br><table style="width: 70%;">';
+    foreach ($sheet->getRowIterator() as $row) {
+        $html .= '<tr>';
+        $cellIterator = $row->getCellIterator();
+        foreach ($cellIterator as $cell) {
+
+            // значение текущей ячейки
+            $value = $cell->getCalculatedValue();
+
+            $html .= '<td>'.$value.'</td>';
+        }
+        $html .= '<tr>';
+    }
+    $html .= '</table>';
+
+    return $html;
+}
+
 function excel2db(Spreadsheet $spreadsheet, PDO $pdo, $table)
 {
     // получает названия листов книги в виде массива
