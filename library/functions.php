@@ -3,16 +3,45 @@
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xls;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx\Worksheet;
 
 /**
  * @param Spreadsheet $spreadsheet - Excel-книга с данными
  * @param string $fileName  - имя xls файла
  * @param PDO $pdo   - PDO-подключение к базе данных
  * @param string $table  - имя таблицы в базе данных
- * @param string $context  - массив с данными для шаблона
+ * @param mixed $context  - массив с данными для шаблона
  * @param string $template  - имя шаблона
+ * @param worksheet $activesheet  - активный лист документа в конкретный момент
+ *
  * @throws \PhpOffice\PhpSpreadsheet\Exception
  */
+
+//функция заполнения активного листа содержимым результата запроса $sqlResultArray
+function pushActiveSheet($activesheet, $sqlResultArray) {
+    
+    $activesheet->getColumnDimension('A')->setWidth(20);
+    $activesheet->getColumnDimension('B')->setWidth(40);
+    $activesheet->getColumnDimension('C')->setWidth(20);
+    $activesheet->getColumnDimension('D')->setWidth(20);
+    
+    $start = 2;
+    $i = 0;
+    $activesheet->setCellValue('A1', 'id');
+    $activesheet->setCellValue('B1', 'name');
+    $activesheet->setCellValue('C1', 'price');
+    $activesheet->setCellValue('D1', 'store');
+
+    foreach ($sqlResultArray as $row){
+        $next = $start + $i;
+        if ($row['id'] == NULL) continue;
+        $activesheet->setCellValue('A'.$next, $row['id']);
+        $activesheet->setCellValue('B'.$next, $row['name']);
+        $activesheet->setCellValue('C'.$next, $row['price']);
+        $activesheet->setCellValue('D'.$next, $row['store']);
+        $i++;
+    }
+}
 
 //функция подключения шаблона с содержимым $context
 function render(string $template, array $context) {
@@ -21,6 +50,7 @@ function render(string $template, array $context) {
     require $base_path . '.\templates\\' . $template . '.php';
 }
 
+//функция чтения xls файла
 function readingXls(string $fileName){
     // Чтение xls файл с начальными данными
     //$spreadsheet = new Spreadsheet();
@@ -30,6 +60,7 @@ function readingXls(string $fileName){
     return $spreadsheet;
 }
 
+//функция сохранения xls файла
 function savingXls(Spreadsheet $spreadsheet, string $fileName){
     try {
         $writer = new Xls($spreadsheet);
@@ -40,7 +71,8 @@ function savingXls(Spreadsheet $spreadsheet, string $fileName){
     }
 }
 
-function showResults ($sheet): string
+//функция вывода результатов в html документ
+function showsqlResultArrays ($sheet): string
 {
     // формирование html-кода с данными
     $html = '<br><table style="width: 70%;">';
@@ -61,6 +93,7 @@ function showResults ($sheet): string
     return $html;
 }
 
+//функция работы с базой данных mysql
 function excel2db(Spreadsheet $spreadsheet, PDO $pdo, $table)
 {
     // получает названия листов книги в виде массива
