@@ -9,7 +9,17 @@
 </head>
 <body>
 
-<?php echo $htmlShow; ?>
+<?php
+if (isset($badResearch)){
+    echo "<br><br><span class='error'>К сожалению, ничего не найдено.</span>";
+}
+else{
+    foreach ($errors as $err) {
+        echo "<span class='error'>$err</span><br>";
+    }
+}
+
+?>
 
 <br>
 <br>

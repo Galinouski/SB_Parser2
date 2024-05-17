@@ -1,11 +1,11 @@
 <?php
-
-require_once __DIR__ . "./vendor/autoload.php";
+global $base_path;
 global $pdo;
 
-require_once __DIR__ . "./configs/database_config.php";
-require_once __DIR__ . "./library/database.php";
-require_once __DIR__ . "./library/functions.php";
+require_once $base_path ."vendor\autoload.php";
+require_once $base_path ."configs\database_config.php";
+require_once $base_path ."library\database.php";
+require_once $base_path . 'library\functions.php';
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
@@ -13,44 +13,74 @@ use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Font;
 
 
-if ($_FILES['file']['tmp_name'] && $_POST ) {
-    $fileName = $_FILES['file']['name'];
+// валидация введённых данных
+$errors = [];
+if(!empty($_POST)){
 
-    if ($_POST['startPrice'])
-        $startPrice = $_POST['startPrice'];
+    if ($_FILES['file']['tmp_name']) {
+        $fileName = $_FILES['file']['name'];
+    }else $errors[] = "не выбран xls файл." ;
+
+    if ($_POST['startPrice']) {
+        if(preg_match('/^\d+(\.\d{2})?$/', $_POST['startPrice'], $result) === 1) {
+            $startPrice = htmlspecialchars($_POST['startPrice'], ENT_QUOTES);
+        }else $errors[] = "проверьте поле начальной цены";
+    }
     else $startPrice = '';
 
-    if ($_POST['highPrice'])
-        $highPrice = $_POST['highPrice'];
+    if ($_POST['highPrice']) {
+        if(preg_match('/^\d+(\.\d{2})?$/', $_POST['highPrice'], $result) === 1) {
+            $highPrice = htmlspecialchars($_POST['highPrice'], ENT_QUOTES);
+        }else $errors[] = "проверьте поле максимальной цены";
+    }
     else $highPrice = '';
 
-    if ($_POST['idStart'])
-        $idStart = $_POST['idStart'];
+    if ($_POST['limit']) {
+        if(preg_match('/^\d/', $_POST['limit'], $result) === 1) {
+            $limit = htmlspecialchars($_POST['limit'], ENT_QUOTES);
+        }else $errors[] = "проверьте поле количества строк парсинга";
+    }
+    else $limit = '';
+
+    if ($_POST['idStart']) {
+        $idStart = htmlspecialchars($_POST['idStart'], ENT_QUOTES);
+    }
     else $idStart = '';
 
-    if ($_POST['idFinish'])
-        $idFinish = $_POST['idFinish'];
+    if ($_POST['idFinish']) {
+        $idFinish = htmlspecialchars($_POST['idFinish'], ENT_QUOTES);
+    }
     else $idFinish = '';
 
-    if ($_POST['idTitleBegin'])
-        $idTitleBegin = $_POST['idTitleBegin'];
+    if ($_POST['idTitleBegin']) {
+        $idTitleBegin = htmlspecialchars($_POST['idTitleBegin'], ENT_QUOTES);
+    }
     else $idTitleBegin = '';
 
-    if ($_POST['idTitleAnd'])
-        $idTitleAnd = $_POST['idTitleAnd'];
+    if ($_POST['idTitleAnd']) {
+        $idTitleAnd = htmlspecialchars($_POST['idTitleAnd'], ENT_QUOTES);
+    }
     else $idTitleAnd = '';
 
-    if ($_POST['name'])
-        $name = $_POST['name'];
+    if ($_POST['name']) {
+        $name = htmlspecialchars($_POST['name'], ENT_QUOTES);
+    }
     else $name = '';
 
-    if ($_POST['nameLike'])
-        $nameLike = $_POST['nameLike'];
+    if ($_POST['nameLike']) {
+        $nameLike = htmlspecialchars($_POST['nameLike'], ENT_QUOTES);
+    }
     else $nameLike = '';
 
-    if ($_POST['limit'])
-        $limit = $_POST['limit'];
-    else $limit = '';
+    if(!empty($errors)){
+
+        // Подключение шаблона errors
+        $context = ['errors'=>$errors];
+        render('errors', $context);
+        exit();
+    }
+}
+
 
     $spreadsheet = new Spreadsheet();
     $spreadsheet = readingXls($fileName);
@@ -70,13 +100,13 @@ if ($_FILES['file']['tmp_name'] && $_POST ) {
     if ($name!='' && $nameLike=='')
         $sql .= " AND name = '$name' ";
     if ($nameLike!='' && $name=='')
-        $sql .= " AND name LIKE '% $nameLike %' ";
+        $sql .= " AND name LIKE '%$nameLike%' ";
     if ($nameLike!='' && $name!='')
-        $sql .= " AND name = '$name' OR name LIKE '% $nameLike %' ";
+        $sql .= " AND name = '$name' OR name LIKE '%$nameLike%' ";
     if ($idTitleBegin!='' && $idTitleAnd=='')
-        $sql .= " AND id LIKE '% $idTitleBegin %' ";
+        $sql .= " AND id LIKE '%$idTitleBegin%' ";
     if ($idTitleAnd!='' && $idTitleBegin=='')
-        $sql .= " AND id LIKE '% $idTitleAnd %' ";
+        $sql .= " AND id LIKE '%$idTitleAnd%' ";
     if ($idTitleBegin=='' && $idTitleAnd!='')
         $sql .= " AND id BETWEEN ' $idTitleBegin ' AND ' $idTitleAnd ' ";
     if ($idStart!='' && $idFinish=='')
@@ -97,7 +127,10 @@ if ($_FILES['file']['tmp_name'] && $_POST ) {
     $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     if(!$result){
-        echo "<br><br><span style='color: red'>Пожалуйста, проверьте введённые данные.</span>";
+        // Подключение шаблона errors
+        $context = ['badResearch'=>'1'];
+        render('errors', $context);
+        exit();
     }
 
     // старт работы c новым xls файлом в котором будет храниться выборка
@@ -165,7 +198,9 @@ if ($_FILES['file']['tmp_name'] && $_POST ) {
 
     // вывод данных в шаблон results.php
     $html = showResults($sheet);
-    include_once dirname(__FILE__).'./templates/results.php';
+    $context = ['htmlShow' => $html];
+    render('results', $context);
+    //include_once dirname(__FILE__).'./templates/results.php';
 
     // сохранить в базу данных результат выборки
     // замеряем время работы скрипта
@@ -177,6 +212,5 @@ if ($_FILES['file']['tmp_name'] && $_POST ) {
     $dsn = NULL;
     $_FILES['file']['tmp_name'] = "";
 
-};
 
 

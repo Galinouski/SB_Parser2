@@ -17,13 +17,13 @@
     <form method="post" enctype="multipart/form-data" action="./baseController.php">
         *.XLSX <input type="file" name="file"  />&nbsp;&nbsp;
         <br><br>(Min) начальная цена: <input type="text" name="startPrice" /><br>
-        <br>(Max) максиммальная цена: <input type="text" name="highPrice" /><br>
+        <br>(Max) максимальная цена: <input type="text" name="highPrice" /><br>
         <br>Наименование товара: <input type="text" name="name" /><br>
         <br>В наименовании товара присутствует текст: <input type="text" name="nameLike" /><br>
         <br>Диапозон по атриклю от: <input type="text" name="idStart" /> до: <input type="text" name="idFinish" /><br>
 
         <br>или начинается с: <input type="text" name="idTitleBegin" /> и оканчивается на: <input type="text" name="idTitleAnd" /><br>
-        <br>колличество строк парсинга (все по умолчанию): <input type="text" name="limit" /><br>
+        <br>количество строк парсинга (все по умолчанию): <input type="text" name="limit" /><br>
 
         <br><br><input type="submit" value="Старт" /><br>
     </form>

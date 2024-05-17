@@ -9,9 +9,17 @@ use PhpOffice\PhpSpreadsheet\Writer\Xls;
  * @param string $fileName  - имя xls файла
  * @param PDO $pdo   - PDO-подключение к базе данных
  * @param string $table  - имя таблицы в базе данных
+ * @param string $context  - массив с данными для шаблона
+ * @param string $template  - имя шаблона
  * @throws \PhpOffice\PhpSpreadsheet\Exception
  */
 
+//функция подключения шаблона с содержимым $context
+function render(string $template, array $context) {
+    global $base_path;
+    extract($context);
+    require $base_path . '.\templates\\' . $template . '.php';
+}
 
 function readingXls(string $fileName){
     // Чтение xls файл с начальными данными

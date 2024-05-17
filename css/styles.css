@@ -9,3 +9,18 @@ body {
     padding: 20px;
     background: #f5ca8f;
 }
+.back{
+    text-decoration: none;
+    color: green;
+    font-size: 15px;
+}
+.back a:active{
+    color: green;
+}
+.back a:visited{
+    color: green;
+}
+.error {
+    color: red;
+    font-size: 16px;
+}
