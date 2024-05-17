@@ -13,7 +13,7 @@ use PhpOffice\PhpSpreadsheet\Writer\Xls;
  */
 
 
-function readingXls($fileName){
+function readingXls(string $fileName){
     // Чтение xls файл с начальными данными
     //$spreadsheet = new Spreadsheet();
     $reader = IOFactory::createReader('Xls');
@@ -22,7 +22,7 @@ function readingXls($fileName){
     return $spreadsheet;
 }
 
-function savingXls($spreadsheet, $fileName){
+function savingXls(Spreadsheet $spreadsheet, string $fileName){
     try {
         $writer = new Xls($spreadsheet);
         $writer->save($fileName);
@@ -32,7 +32,8 @@ function savingXls($spreadsheet, $fileName){
     }
 }
 
-function showResults ($sheet) {
+function showResults ($sheet): string
+{
     // формирование html-кода с данными
     $html = '<br><table style="width: 70%;">';
     foreach ($sheet->getRowIterator() as $row) {
