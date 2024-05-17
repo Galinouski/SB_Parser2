@@ -20,8 +20,8 @@ if(!empty($_POST)){
     if ($_FILES['file']['tmp_name']) {
         if (mime_content_type($_FILES['file']['tmp_name']) == 'application/vnd.ms-excel'){
             $fileName = $_FILES['file']['tmp_name'];
-        }else $errors[] = "не выбран xls файл.";
-    }else $errors[] = "не выбран xls файл.";
+        }else $errors[] = "для корректной работы требуется .xls файл.";
+    }else $errors[] = "не выбран файл для парсинга.";
 
     if ($_POST['startPrice']) {
         if(preg_match('/^\d+(\.\d{2})?$/', $_POST['startPrice'], $result) === 1) {
