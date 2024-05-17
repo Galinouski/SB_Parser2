@@ -87,13 +87,11 @@ if(!empty($_POST)){
     $spreadsheet->setActiveSheetIndex(0);
     $sheet = $spreadsheet->getActiveSheet();
 
-    // замеряем время работы скрипта
+    // замеряем время работы загрузки в базу данных
     $startTime = microtime(true);
-
     // запускаем экспорт данных
     excel2db($spreadsheet, $pdo, 'original');
-    $elapsedTime = round(microtime(true) - $startTime, 4);
-    echo "<br><b>Загрузка в базу данных 'original': $elapsedTime с.</b><br>";
+    $elapsedTime[] = round(microtime(true) - $startTime, 4);
 
     $sql = "SELECT * FROM `original` WHERE price>0 ";
 
@@ -108,13 +106,13 @@ if(!empty($_POST)){
     if ($idTitleAnd!='' && $idTitleBegin=='')
         $sql .= " AND id LIKE '%$idTitleAnd%' ";
     if ($idTitleBegin=='' && $idTitleAnd!='')
-        $sql .= " AND id BETWEEN ' $idTitleBegin ' AND ' $idTitleAnd ' ";
+        $sql .= " AND id BETWEEN '$idTitleBegin' AND '$idTitleAnd' ";
     if ($idStart!='' && $idFinish=='')
-        $sql .= " AND id > ' $idStart ' ";
+        $sql .= " AND id > '$idStart' ";
     if ($idFinish!='' && $idStart=='')
-        $sql .= " AND id <= ' $idFinish ' ";
+        $sql .= " AND id <= '$idFinish' ";
     if ($idFinish!='' && $idStart!='')
-        $sql .= " AND id BETWEEN ' $idStart ' AND ' $idFinish ' ";
+        $sql .= " AND id BETWEEN '$idStart' AND '$idFinish' ";
     if ($startPrice!='')
         $sql .= " AND price > $startPrice ";
     if ($highPrice!='')
@@ -196,18 +194,16 @@ if(!empty($_POST)){
     $spreadsheet->setActiveSheetIndex(0);
     $sheet = $spreadsheet->getActiveSheet();
 
-    // вывод данных в шаблон results.php
-    $html = showResults($sheet);
-    $context = ['htmlShow' => $html];
-    render('results', $context);
-    //include_once dirname(__FILE__).'./templates/results.php';
-
     // сохранить в базу данных результат выборки
     // замеряем время работы скрипта
     $startTime = microtime(true);
     excel2db($spreadsheet, $pdo, 'research');
-    $elapsedTime = round(microtime(true) - $startTime, 4);
-    echo "<br><b>Загрузка в базу данных 'research': $elapsedTime с.</b><br>";
+    $elapsedTime[] = round(microtime(true) - $startTime, 4);
+
+    // вывод данных в шаблон results.php
+    $html = showResults($sheet);
+    $context = ['htmlShow' => $html, 'elapsedTime'=> $elapsedTime];
+    render('results', $context);
 
     $dsn = NULL;
     $_FILES['file']['tmp_name'] = "";

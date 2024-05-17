@@ -11,6 +11,9 @@
 
 <?php echo $htmlShow; ?>
 
+<br><b>Загрузка в базу данных 'original': <?= $elapsedTime[0] ?> с.</b><br>
+<br><b>Загрузка в базу данных 'research': <?= $elapsedTime[1] ?> с.</b><br>
+
 <br>
 <br>
 <a href="./index.php" class="back">вернуться назад</a>
