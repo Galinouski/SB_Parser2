@@ -24,21 +24,21 @@ use PhpOffice\PhpSpreadsheet\Style\Font;
         }else $errors[] = "не выбран файл для парсинга.";
 
         if ($_POST['startPrice']) {
-            if(preg_match('/^\d+(\.\d{2})?$/', $_POST['startPrice'], $Result) === 1) {
+            if(preg_match('/^[\d,\.]+(\d)?$/', $_POST['startPrice'], $Result) === 1) {
                 $startPrice = htmlspecialchars($_POST['startPrice'], ENT_QUOTES);
             }else $errors[] = "проверьте поле начальной цены";
         }
         else $startPrice = '';
 
         if ($_POST['highPrice']) {
-            if(preg_match('/^\d+(\.\d{2})?$/', $_POST['highPrice'], $Result) === 1) {
+            if(preg_match('/^[\d,\.]+(\d)?$/', $_POST['highPrice'], $Result) === 1) {
                 $highPrice = htmlspecialchars($_POST['highPrice'], ENT_QUOTES);
             }else $errors[] = "проверьте поле максимальной цены";
         }
         else $highPrice = '';
 
         if ($_POST['limit']) {
-            if(preg_match('/\d/', $_POST['limit'], $Result) === 1) {
+            if(preg_match('/^\d+(\.)?$/', $_POST['limit'], $Result) === 1) {
                 $limit = htmlspecialchars($_POST['limit'], ENT_QUOTES);
             }else $errors[] = "проверьте поле количества строк парсинга";
         }
