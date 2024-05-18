@@ -6,6 +6,7 @@ require_once $base_path ."vendor\autoload.php";
 require_once $base_path ."configs\database_config.php";
 require_once $base_path ."library\database.php";
 require_once $base_path . 'library\functions.php';
+require_once $base_path . 'library\core.php';
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
