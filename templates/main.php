@@ -14,7 +14,7 @@
     <br>
     <h3>введите данные для парсинга:</h3>
     <br>
-    <form method="post" enctype="multipart/form-data" action="./index.php">
+    <form method="post" enctype="multipart/form-data">
         *.XLSX <input type="file" name="file"  />&nbsp;&nbsp;
         <br><br>(Min) начальная цена: <input type="text" name="startPrice" /><br>
         <br>(Max) максимальная цена: <input type="text" name="highPrice" /><br>
