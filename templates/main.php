@@ -27,6 +27,19 @@
 
         <br><br><input type="submit" value="Старт" /><br>
     </form>
+    <?php
+    echo "<br>";
+    if (isset($badResearch)){
+        echo "<br><br><span class='error'>К сожалению, ничего не найдено.</span>";
+    }
+
+    if(isset($errors)){
+        foreach ($errors as $err) {
+            echo "<span class='error'>$err</span><br>";
+        }
+    }
+
+    ?>
 </div>
 </body>
 </html>

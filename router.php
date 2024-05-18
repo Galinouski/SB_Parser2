@@ -70,7 +70,7 @@ if (empty($_POST)){
 
             // Подключение шаблона errors
             $context = ['errors'=>$errors];
-            render('errors', $context);
+            render('main', $context);
             exit();
         }
     }

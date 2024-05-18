@@ -57,7 +57,7 @@ use PhpOffice\PhpSpreadsheet\Style\Font;
     if(!$sqlResultArray){
         // Подключение шаблона errors
         $context = ['badResearch'=>'1'];
-        render('errors', $context);
+        render('main', $context);
         exit();
     }
 
